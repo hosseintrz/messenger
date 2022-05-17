@@ -13,17 +13,18 @@ async function signup(name , email, password){
         password:bcrypt.hashSync(password,10)
     }
     mongoClient = await getMongoClient()
-    return new Promise((resolve, reject) => {
-        mongoClient.db("messenger").collection("users").insertOne(user)
-        .then(() => {
-            resolve(generateToken(user))
-        }).catch(err => {
-            reject(err)
-        }).finally(() => {
-            mongoClient.close()
-        })
-    })
-
+    let res = await mongoClient.db("messenger").collection("users").findOne({email:email})
+    if (res){
+        throw new Error("user with this email address already exists")
+    }
+    try{
+        await mongoClient.db("messenger").collection("users").insertOne(user)
+        return generateToken(user)
+    }catch(err){
+        throw new Error(err)
+    }finally{
+        mongoClient.close()
+    }
 }
 
 async function login(email, password){

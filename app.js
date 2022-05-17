@@ -7,6 +7,19 @@ const authRouter = require('./routes/authRouter')
 const groupRouter = require('./routes/groupRouter')
 const joinRequestRouter = require('./routes/joinRequestRouter')
 
+let userValidation = (req,res,next) => {
+    nonSecurePaths = ['/auth/signup','/auth/login']
+    if (nonSecurePaths.includes(req.path)) return next()
+    if (req.user){
+        next()
+    }else{
+        res.status(401).json({
+            message: 'Unauthorized'
+        })
+    }
+}
+
+
 app.use(express.urlencoded({extended: false}))
 app.use(express.json())
 
@@ -29,12 +42,15 @@ app.use((req,res,next) => {
 const router = express.Router()
 app.use('/api/v1',router)
 
+router.all("*",userValidation)
+
 router.get('/test', (req,res) => {
-    if(req.user){
-        res.json(req.user)
-    }else{
-        res.send('test fail')
-    }
+    // if(req.user){
+    //     res.json(req.user)
+    // }else{
+    //     res.send('test fail')
+    // }
+    res.json(req.user)
 })
 
 router.use('/auth',authRouter)

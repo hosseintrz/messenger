@@ -11,7 +11,7 @@ let getUserWithoutPass = (user) => {
 function generateToken(user){
     safeUser = getUserWithoutPass(user)
     safeUser.userId = user._id
-    return jwt.sign(safeUser,secretKey,{expiresIn:'30s', algorithm:'HS256'})
+    return jwt.sign(safeUser,secretKey,{expiresIn:'30m', algorithm:'HS256'})
 }
 
 module.exports = {
