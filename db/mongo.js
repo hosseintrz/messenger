@@ -1,17 +1,33 @@
 const {MongoClient} = require('mongodb');
 const { getConfig } = require('../config/config');
 
+const
+    MESSENGER = "messenger",
+    USERS = "users",
+    GROUPS = "groups",
+    REQUESTS = "requests"
+
+
 const url = getConfig('MONGO_URL');
 
 async function getMongoClient(){
     var mongoClient = new MongoClient(url, {useNewUrlParser: true});
-    mongoClient.connect().catch((err) => {
+    try{
+        return await mongoClient.connect()
+    }catch(err){
         throw new Error(err)
-    })
-    return mongoClient
+    }
+}
 
+const getCollection = (client, collectionName) => {
+    return client.db(MESSENGER).collection(collectionName)
 }
 
 module.exports = {
-    getMongoClient
+    getMongoClient,
+    MESSENGER,
+    USERS,
+    GROUPS,
+    REQUESTS,
+    getCollection
 }

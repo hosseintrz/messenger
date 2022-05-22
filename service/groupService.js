@@ -16,7 +16,7 @@ async function createGroup(user, name, description){
             id: user.userId,
             name: user.name,
             email: user.email,
-            rule: "owner"
+            role: "owner"
         }]
     }
     try{

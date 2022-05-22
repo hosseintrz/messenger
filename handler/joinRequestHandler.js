@@ -1,17 +1,58 @@
+const RequestService = require('../service/RequestService')
+
 const sendRequest = (req,res) => {
-    res.send("send request")
+    let {groupId} = req.body
+    let userId = req.user.userId
+    RequestService.addRequest(groupId, userId).then(() => {
+        res.status(200).json({
+            message: "successful"
+        })
+    }).catch(err => {
+        console.log(err)
+        res.status(400).json({
+            message: "Bad request!"
+        })
+    })
 }
 
-const getAllRequests = (req,res) => {
-    res.send("get all requests")
+const getSentRequests = (req,res) => {
+    RequestService.getSentRequests(req.user.userId).then(requests => {
+        res.status(200).json({
+            joinRequests:requests
+        })
+    })
 }
 
 const getGroupRequests = (req,res) => {
-    res.send("get group requests")
+    RequestService.getGroupRequests(req.user.userId).then(requests => {
+        res.status(200).json({
+            joinRequests:requests
+        })
+    }).catch(err => {
+        console.log(err)
+        res.status(400).json({
+            message: "Bad request!"
+        })
+    })
+}
+
+const acceptRequest = (req,res) => {
+    let {joinRequestId} = req.body
+    RequestService.acceptRequest(joinRequestId, req.user.userId).then(() => {
+        res.status(200).json({
+            message: "successful"
+        })
+    }).catch(err => {
+        console.log(err)
+        res.status(400).json({
+            message: "Bad request!"
+        })
+    })
 }
 
 module.exports = {
     sendRequest,
-    getAllRequests,
-    getGroupRequests
+    getSentRequests,
+    getGroupRequests,
+    acceptRequest
 }
