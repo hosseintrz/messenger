@@ -6,6 +6,8 @@ const { getConfig } = require('./config/config');
 const authRouter = require('./routes/authRouter')
 const groupRouter = require('./routes/groupRouter')
 const joinRequestRouter = require('./routes/joinRequestRouter')
+const connRouter = require('./routes/connRouter');
+const chatRouter = require('./routes/chatRouter')
 
 let userValidation = (req,res,next) => {
     nonSecurePaths = ['/auth/signup','/auth/login']
@@ -56,8 +58,8 @@ router.get('/test', (req,res) => {
 router.use('/auth',authRouter)
 router.use('/groups',groupRouter)
 router.use('/join_requests',joinRequestRouter)
-
-
+router.use('/connection_requests',connRouter)
+router.use('/chats',chatRouter)
 
 app.all('*',(req, res) => {
     res.status(404).send('<h1>error</h1>')

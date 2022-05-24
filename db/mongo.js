@@ -5,7 +5,9 @@ const
     MESSENGER = "messenger",
     USERS = "users",
     GROUPS = "groups",
-    REQUESTS = "requests"
+    REQUESTS = "requests",
+    CONN_REQUESTS = "conn_requests",
+    CHATS = "chats"
 
 
 const url = getConfig('MONGO_URL');
@@ -29,5 +31,7 @@ module.exports = {
     USERS,
     GROUPS,
     REQUESTS,
+    CONN_REQUESTS,
+    CHATS,
     getCollection
 }
