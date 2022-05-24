@@ -15,7 +15,10 @@ async function addRequest(groupId, userId){
 }
 
 async function getSentRequests(userId){
-    let requests = await getCollection(REQUESTS).find({userId: userId}).toArray()
+    let requests = await getCollection(REQUESTS).find(
+        {userId: userId},
+        { sort: {date: -1}, })
+            .toArray()
     return requests
 }
 
@@ -53,7 +56,7 @@ async function acceptRequest(joinReqId, onwerId) {
     }})
     //add group to user
     await getCollection(USERS).updateOne({_id: new ObjectId(user._id)}, 
-        {$push:{groups:new ObjectId(joinReq.groupId)}})
+        {$push:{groups: joinReq.groupId}})
     await getCollection(REQUESTS).updateOne({_id:new ObjectId(joinReqId)}, {$set:{accepted:true}})
 }
 

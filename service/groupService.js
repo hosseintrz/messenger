@@ -33,8 +33,10 @@ async function getAllGroups(){
 
 async function getMyGroups(user){
     let res = await getCollection(USERS).findOne({email:user.email})
-    let groupIds = res.groups
-    console.log(groupIds)
+    let groupIds = res.groups 
+    if(!groupIds){
+        throw new Error("user has no groups")
+    }
     let pipeline = [
         {$match:{_id:{$in:groupIds}}},
         //{$unwind: "$groups"},

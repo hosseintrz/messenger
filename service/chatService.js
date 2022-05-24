@@ -1,4 +1,3 @@
-const { Db } = require("mongodb");
 const { getCollection, USERS, CHATS } = require("../db/mongo")
 var ObjectId = require('mongodb').ObjectId;
 
@@ -6,8 +5,6 @@ async function getChatId(user1, user2){
     if (!user1.groups || user1.groups.length == 0){
         throw new Error("user has no groups")
     }
-    console.log(user1)
-    console.log(user2)
     if(user1._id.toString() == user2._id.toString()){
         throw new Error("user can't chat with himself")
     }
@@ -22,6 +19,7 @@ async function getChatId(user1, user2){
     let chat = {
         user1_id: user1._id.toString(),
         user2_id: user2._id.toString(),
+        last_updated: new Date().getTime(),
         messages:[]
     }
     let res = await getCollection(CHATS).insertOne(chat)
@@ -34,14 +32,17 @@ async function sendMessage(user1_id, user2_id, message){
     let user1 = await getCollection(USERS).findOne({_id: new ObjectId(user1_id)})
     let user2 = await getCollection(USERS).findOne({_id: new ObjectId(user2_id)})
     let chatId = await getChatId(user1,user2)
+    let time = new Date().getTime()
     await getCollection(CHATS).updateOne({_id: new ObjectId(chatId)}, 
-        {$addToSet: { messages: 
-            {
-                message: message,  
-                date: new Date().getTime(),
-                sentby: user1.name,
+        {
+            $set: {last_updated: time}, 
+            $addToSet: { messages: {
+                    message: message,  
+                    date: time,
+                    sentby: user1.name,
+                }
             }
-        }})
+        })
 }
 
 async function getChatDetails(user1_id, user2_id){
@@ -62,10 +63,8 @@ async function getChatDetails(user1_id, user2_id){
         // }}      
     ]
   
-    console.log(chatId)
     let aggCur = await getCollection(CHATS).aggregate(pipeline)
     let docs = await aggCur.next()
-    console.log(docs)
 
     return docs.messages.sort((a,b) => {
         return b.date - a.date
@@ -74,18 +73,18 @@ async function getChatDetails(user1_id, user2_id){
 
 async function getChatList(userId){
     let user = await getCollection(USERS).findOne({_id: new ObjectId(userId)},{chats:1,_id:0})
-    console.log(user)
     if (!user.chats){
         return []
     }
-    let chats = user.chats.map(chat => {
+    let cur = await getCollection(CHATS).find({_id: {$in: user.chats.map(chat => chat.chatId)}},
+        { sort: {last_updated: -1}, }
+    )
+    let chats = await cur.toArray()
+    return chats.map(chat => {
         return {
-            userId: chat.userId,
-            name: chat.name,
+            userId : user.chats.find(ch => ch.chatId.toString() == chat._id.toString()).userId,
+            name : user.chats.find(ch => ch.chatId.toString() == chat._id.toString()).name
         }
-    })
-    return chats.sort((a,b) => {
-        return b.date - a.date
     })
 }
 

@@ -28,7 +28,13 @@ async function getConnRequests(userId){
     }
     let groupId = user.groups[0]
     let requests = await getCollection(CONN_REQUESTS).find({userGroupId: groupId}).toArray()
-    return requests
+    return requests.map(req => {
+        return {
+            connectionRequestId: req._id,
+            groupId: req.groupId,
+            sent: req.sent,
+        }
+    })
 }
 
 async function acceptConnRequests(connReqId, userId) {
