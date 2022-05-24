@@ -12,21 +12,35 @@ const
 
 const url = getConfig('MONGO_URL');
 
-async function getMongoClient(){
-    var mongoClient = new MongoClient(url, {useNewUrlParser: true});
+var db;
+
+async function connectDB(){
     try{
-        return await mongoClient.connect()
+        var mongoClient = new MongoClient(url, {useNewUrlParser: true});
+        let client = await mongoClient.connect()
+        db = client.db(MESSENGER)
+        console.log("connected to mongo")
     }catch(err){
-        throw new Error(err)
+        console.log("Error connecting to mongo", err)
     }
+
 }
 
-const getCollection = (client, collectionName) => {
-    return client.db(MESSENGER).collection(collectionName)
+// async function getMongoClient(){
+//     var mongoClient = new MongoClient(url, {useNewUrlParser: true});
+//     try{
+//         return await mongoClient.connect()
+//     }catch(err){
+//         throw new Error(err)
+//     }
+// }
+
+const getCollection = (collection) => {
+    return db.collection(collection)
 }
 
 module.exports = {
-    getMongoClient,
+    connectDB,
     MESSENGER,
     USERS,
     GROUPS,

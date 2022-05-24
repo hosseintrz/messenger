@@ -1,11 +1,10 @@
-const { getMongoClient } = require("../db/mongo")
+const {getCollection, USERS, GROUPS } = require("../db/mongo")
 
 async function createGroup(user, name, description){
     if (!(user && name && description)){
         throw new Error("missing parameters")
     }
-    mongoClient = await getMongoClient()
-    let dbUser = await mongoClient.db("messenger").collection("users").findOne({email:user.email})
+    let dbUser = await getCollection(USERS).findOne({email:user.email})
     if (dbUser.groups && dbUser.groups.length > 0){
         throw new Error("user already has a group")
     }
@@ -19,31 +18,21 @@ async function createGroup(user, name, description){
             role: "owner"
         }]
     }
-    try{
-        await mongoClient.db("messenger").collection("groups").insertOne(group)
-        await mongoClient.db("messenger").collection("users").updateOne({email:user.email}, {$push:{groups:group._id}})
-        return group
-    }catch(err){
-        throw new Error(err)
-    }finally{
-        mongoClient.close()
-    }
+    await getCollection(GROUPS).insertOne(group)
+    await getCollection(USERS).updateOne({email:user.email}, {$push:{groups:group._id}})
+    return group
 }
 
 async function getAllGroups(){
-    mongoClient = await getMongoClient()
     let pipeline = [
       //  {$sort: {$natural:1}}
     ]
-    let groups = await mongoClient.db("messenger").collection("groups")
-        .aggregate(pipeline).toArray()
+    let groups = await getCollection(GROUPS).aggregate(pipeline).toArray()
     return groups    
-    //let groups = await mongoClient.db("messenger").collection("groups").find().toArray()
 }
 
 async function getMyGroups(user){
-    mongoClient = await getMongoClient()
-    let res = await mongoClient.db("messenger").collection("users").findOne({email:user.email})
+    let res = await getCollection(USERS).findOne({email:user.email})
     let groupIds = res.groups
     console.log(groupIds)
     let pipeline = [
@@ -52,7 +41,7 @@ async function getMyGroups(user){
         //{$unwind: "$members"},  
        // {$sort : {$natural: 1}}
     ]
-    let groups = await mongoClient.db("messenger").collection("groups").aggregate(pipeline).toArray()
+    let groups = await getCollection(GROUPS).aggregate(pipeline).toArray()
     if (!groups){
         throw new Error("user has no groups")
     }

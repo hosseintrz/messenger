@@ -1,4 +1,4 @@
-const { getMongoClient } = require("../db/mongo")
+const { getCollection, USERS } = require("../db/mongo")
 const { generateToken } = require('./jwt/jwtService')
 const bcrypt = require('bcrypt')
 
@@ -12,28 +12,21 @@ async function signup(name , email, password){
         email:email,
         password:bcrypt.hashSync(password,10)
     }
-    mongoClient = await getMongoClient()
-    let res = await mongoClient.db("messenger").collection("users").findOne({email:email})
+    let res = await getCollection(USERS).findOne({email:email})
     if (res){
         throw new Error("user with this email address already exists")
     }
-    try{
-        await mongoClient.db("messenger").collection("users").insertOne(user)
-        return generateToken(user)
-    }catch(err){
-        throw new Error(err)
-    }finally{
-        mongoClient.close()
-    }
+    await getCollection(USERS).insertOne(user)
+    return generateToken(user)
+    
 }
 
 async function login(email, password){
     if (!(email && password)){
         throw new Error("Bad request!")
     }
-    mongoClient = await getMongoClient()
     return new Promise((resolve,reject) => {
-        mongoClient.db("messenger").collection("users").findOne({email:email})
+       getCollection(USERS).findOne({email:email})
             .then(user => {
                 if (bcrypt.compareSync(password, user.password)){
                     resolve(generateToken(user))
@@ -43,8 +36,6 @@ async function login(email, password){
             }).catch(err => {
                 console.log(err)
                 reject("user not found")  
-            }).finally(() => {
-                mongoClient.close()
             })
     })
 }

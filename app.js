@@ -7,7 +7,10 @@ const authRouter = require('./routes/authRouter')
 const groupRouter = require('./routes/groupRouter')
 const joinRequestRouter = require('./routes/joinRequestRouter')
 const connRouter = require('./routes/connRouter');
-const chatRouter = require('./routes/chatRouter')
+const chatRouter = require('./routes/chatRouter');
+const { MongoErrorLabel } = require('mongodb');
+const { connectDB } = require('./db/mongo');
+
 
 let userValidation = (req,res,next) => {
     nonSecurePaths = ['/auth/signup','/auth/login']
@@ -66,6 +69,9 @@ app.all('*',(req, res) => {
 })
 
 const port = 8080
-app.listen(port , () => {
-    console.log('server is running...')
+
+connectDB().then(() => {
+    app.listen(port , () => {
+        console.log('server is running...')
+    })
 })
